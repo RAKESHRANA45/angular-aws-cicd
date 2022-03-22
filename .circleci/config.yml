@@ -38,6 +38,7 @@ jobs:
       - run:
           #Get all pre-requisites
           command: |
+            pip install awscli==1.14.37
             aws s3 sync build/ s3://test-another-app
   deploy-production:
     docker:
@@ -49,6 +50,7 @@ jobs:
       - run:
           #Get all pre-requisites
           command: |
+            pip install awscli==1.14.37
             aws s3 sync build/ s3://production-another-app
 
 workflows:
