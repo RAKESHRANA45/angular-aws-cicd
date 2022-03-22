@@ -40,7 +40,7 @@ jobs:
           command: |
             apk add --no-cache py-pip=9.0.0-r1
             pip install awscli==1.14.37
-            aws s3 sync ./ s3://test-another-app
+            aws s3 sync ./src/ s3://test-another-app
   deploy-production:
     docker:
       - image: docker:17.05.0-ce-git
@@ -53,7 +53,7 @@ jobs:
           command: |
             apk add --no-cache py-pip=9.0.0-r1
             pip install awscli==1.14.37
-            aws s3 sync ./ s3://production-another-app
+            aws s3 sync ./src/ s3://production-another-app
 
 workflows:
   version: 2
