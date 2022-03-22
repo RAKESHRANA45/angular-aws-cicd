@@ -11,6 +11,9 @@ jobs:
       - run:
           name: Install dependencies
           command: npm install
+      - run:
+          name: ng install
+          command: npm install ng
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
