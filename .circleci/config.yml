@@ -43,8 +43,8 @@ jobs:
             pip install \
               awscli==1.14.37
             # Login to ecr and docker login
-            aws_login=`aws ecr get-login --no-include-email --region eu-west-1`
-            eval $aws_login
+            #aws_login=`aws ecr get-login --no-include-email --region eu-west-1`
+           # eval $aws_login
             aws s3 sync build/ s3://test-another-app
   deploy-production:
     docker:
