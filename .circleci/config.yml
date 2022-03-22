@@ -20,7 +20,7 @@ jobs:
             - node_modules
       - run:
           name: Build the application
-          command: ng build --prod
+          command: npm install ng && ng build --prod          
       - persist_to_workspace:
           root: ./
           paths:
