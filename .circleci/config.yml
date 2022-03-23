@@ -1,65 +1,77 @@
 
-# Javascript Node CircleCI 2.0 configuration file
-#
-# Check {{ '/2.0/language-javascript/' | docs_url }} for more details
-#
 version: 2
-
-defaults: &defaults
-  working_directory: ~/repo
-  docker:
-    - image: circleci/node:12.0
-
 jobs:
-  test:
-    <<: *defaults  
+  build:
+    docker:
+      - image: circleci/node:12.0
     steps:
       - checkout
-
+      - setup_remote_docker
       - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          - v1-dependencies-
-
-      - run: npm install
-#       - run:
-#           name: Run tests
-#           command: npm test
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
-           name: ng install
-           command: npm install ng
-
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: ng install
+          command: npm install ng
       - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
       - run:
-          name: Build package
-          command: npm run build
-
+          name: Build the application
+          command: npm run build    
       - persist_to_workspace:
-          root: ~/repo
-          paths: .
-
-  deploy:
-    <<: *defaults
+          root: ./
+          paths:
+            - package.json
+            - node_modules
+            - src
+            - build
+  deploy-test:
+    docker:
+      - image: docker:17.05.0-ce-git
     steps:
+      - setup_remote_docker
       - attach_workspace:
-          at: ~/repo
+          at: ./
       - run:
-          name: Build package
-          command: npm build --prod
+          #Get all pre-requisites
+          command: |
+            apk add --no-cache py-pip=9.0.0-r1
+            pip install awscli==1.14.37
+            aws s3 sync ./build/ s3://test-another-app
+  deploy-production:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: ./
+      - run:
+          #Get all pre-requisites
+          command: |
+            apk add --no-cache py-pip=9.0.0-r1
+            pip install awscli==1.14.37
+            aws s3 sync ./build/ s3://production-another-app
 
 workflows:
   version: 2
-  test-deploy:
+  build-test-and-deploy:
     jobs:
-      - test
-      - deploy:
+      - build
+      - deploy-test:
           requires:
-            - test
+            - build
           filters:
-            tags:
-              only: /^v.*/
             branches:
-              ignore: /.*/
+              only:
+                - test
+      - deploy-production:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - main
