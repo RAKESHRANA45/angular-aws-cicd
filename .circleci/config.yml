@@ -22,9 +22,9 @@ jobs:
           - v1-dependencies-
 
       - run: npm install
-      - run:
-          name: Run tests
-          command: npm test
+#       - run:
+#           name: Run tests
+#           command: npm test
 
       - save_cache:
           paths:
@@ -41,8 +41,8 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run:
-          name: Publish package
-          command: npm publish
+          name: Build package
+          command: npm build --prod
 
 workflows:
   version: 2
