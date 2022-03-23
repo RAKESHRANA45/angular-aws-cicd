@@ -22,12 +22,12 @@ jobs:
       - run:
           name: Build the application
           command: npm run build 
-      - run:
-      #Get all pre-requisites
-          command: |
-            yum install python3
-            pip install awscli==1.14.37
-            aws s3 sync ./ s3://production-another-app
+#       - run:
+#       #Get all pre-requisites
+#           command: |
+#             yum install python3
+#             pip install awscli==1.14.37
+#             aws s3 sync ./ s3://production-another-app
 
       - persist_to_workspace:
           root: ./
@@ -48,6 +48,8 @@ jobs:
           command: |
             apk add --no-cache py-pip=9.0.0-r1
             pip install awscli==1.14.37
+            aws_login=`aws ecr get-login --no-include-email --region us-east-1`
+            eval $aws_login
             aws s3 sync ./build/ s3://test-another-app
   deploy-production:
     docker:
@@ -61,6 +63,8 @@ jobs:
           command: |
             apk add --no-cache py-pip=9.0.0-r1
             pip install awscli==1.14.37
+            aws_login=`aws ecr get-login --no-include-email --region us-east-1`
+            eval $aws_login
             aws s3 sync ./ s3://production-another-app
 
 workflows:
