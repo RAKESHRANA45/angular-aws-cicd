@@ -25,6 +25,9 @@ jobs:
 #       - run:
 #           name: Run tests
 #           command: npm test
+      - run:
+           name: ng install
+           command: npm install ng
 
       - save_cache:
           paths:
