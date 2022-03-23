@@ -1,42 +1,59 @@
-version: '2.1'
+
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check {{ '/2.0/language-javascript/' | docs_url }} for more details
+#
+version: 2
+
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:12.0
+
 jobs:
-  install-node-example:
-    docker:
-      - image: 'cimg/base:stable'
-    steps:
-      - checkout
-      - node/install:
-          install-yarn: true
-          node-version: '16.13'
-      - run: node --versios
   test:
-    executor: node/default
+    <<: *defaults  
     steps:
       - checkout
-      - node/install-packages:
-          cache-path: ~/project/node_modules
-          override-ci-command: npm install
-      - run: sudo npm install -g npm@latest
-      - run: npm run test
-   
+
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
+
+      - run: npm install
+      - run:
+          name: Run tests
+          command: npm test
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
+
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Publish package
+          command: npm publish
+
 workflows:
-  test_my_app:
+  version: 2
+  test-deploy:
     jobs:
-      - install-node-example
-      - node/test:
-          test-results-for: jest
-      - node/run:
-          npm-run: build
-      - node/test
-      - heroku/deploy-via-git:
-          filters:
-            branches:
-              only:
-                - main
-          requires:
-            - node/test
-      - node/run:
-          yarn-run: build
       - test
-      
-      
+      - deploy:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
