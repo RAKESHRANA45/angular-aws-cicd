@@ -35,7 +35,7 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: Build package
-          command: npm install ng && ng build --prod
+          command: npm run build
 
       - persist_to_workspace:
           root: ~/repo
