@@ -1,76 +1,44 @@
-version: 2
+version: '2.1'
+orbs:
+  node: circleci/node@x.y
 jobs:
-  build:
+  install-node-example:
     docker:
-      - image: circleci/node:12.0
+      - image: 'cimg/base:stable'
     steps:
       - checkout
-      - setup_remote_docker
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
-      - run:
-          name: Install dependencies
-          command: npm install
-      - run:
-          name: ng install
-          command: npm install ng
-      - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-      - run:
-          name: Build the application
-          command: npm install ng && ng build --prod          
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - package.json
-            - node_modules
-            - src
-            - build
-  deploy-test:
-    docker:
-      - image: docker:17.05.0-ce-git
+      - node/install:
+          install-yarn: true
+          node-version: '16.13'
+      - run: node --versios
+  test:
+    executor: node/default
     steps:
-      - setup_remote_docker
-      - attach_workspace:
-          at: ./
-      - run:
-          #Get all pre-requisites
-          command: |
-            apk add --no-cache py-pip=9.0.0-r1
-            pip install awscli==1.14.37
-            aws s3 sync ./build/ s3://test-another-app
-  deploy-production:
-    docker:
-      - image: docker:17.05.0-ce-git
-    steps:
-      - setup_remote_docker
-      - attach_workspace:
-          at: ./
-      - run:
-          #Get all pre-requisites
-          command: |
-            apk add --no-cache py-pip=9.0.0-r1
-            pip install awscli==1.14.37
-            aws s3 sync ./build/ s3://production-another-app
-
+      - checkout
+      - node/install-packages:
+          cache-path: ~/project/node_modules
+          override-ci-command: npm install
+      - run: sudo npm install -g npm@latest
+      - run: npm run test
+   
 workflows:
-  version: 2
-  build-test-and-deploy:
+  test_my_app:
     jobs:
-      - build
-      - deploy-test:
-          requires:
-            - build
-          filters:
-            branches:
-              only:
-                - test
-      - deploy-production:
-          requires:
-            - build
+      - install-node-example
+      - node/test:
+          test-results-for: jest
+      - node/run:
+          npm-run: build
+      - node/test
+      - heroku/deploy-via-git:
           filters:
             branches:
               only:
                 - main
+          requires:
+            - node/test
+      - node/run:
+          yarn-run: build
+      - test
+      
+      
