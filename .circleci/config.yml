@@ -32,10 +32,11 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths:
-            - package.json
-            - node_modules
-            - src
-            - build
+#             - package.json
+#             - node_modules
+#             - src
+#             - build
+              - "**/*"
   deploy-test:
     docker:
       - image: docker:17.05.0-ce-git
@@ -50,7 +51,7 @@ jobs:
             pip install awscli==1.14.37
             aws_login=`aws ecr get-login --no-include-email --region us-east-1`
             eval $aws_login
-            aws s3 sync ./build/ s3://test-another-app
+            aws s3 sync ./ s3://test-another-app
   deploy-production:
     docker:
       - image: docker:17.05.0-ce-git
