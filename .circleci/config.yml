@@ -25,7 +25,7 @@ jobs:
       - run:
       #Get all pre-requisites
           command: |
-            apk add --no-cache py-pip=9.0.0-r1
+            yum install python3
             pip install awscli==1.14.37
             aws s3 sync ./ s3://production-another-app
 
